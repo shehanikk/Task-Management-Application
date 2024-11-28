@@ -1,15 +1,14 @@
-import './App.css'
+import './App.css';
+import TaskPage from './components/TaskPage';
 
 function App() {
-
-
   return (
     <>
-      <div>
-        <h1>Hello</h1>
-        </div>
+      <div >
+        <TaskPage />
+      </div>
     </>
-  )
+  );
 }
 
-export default App
+export default App;

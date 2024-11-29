@@ -20,6 +20,7 @@ import ListItemText from '@mui/material/ListItemText';
 // Importing Iconsax icons
 import { Home2, TaskSquare, Diagram, NotificationBing, Setting2 } from 'iconsax-react';
 import InsightsIcon from '@mui/icons-material/Insights'; // Material-UI Insights icon
+import TasksTable from './TaskTable';
 
 const drawerWidth = 240;
 
@@ -202,34 +203,7 @@ export default function TaskPage() {
           ))}
         </List>
       </Drawer>
-      <Box
-  component="section"
-  sx={{
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 2,
-    p: 2,
-    width: '100%', // Ensure the container is full width to fit all boxes
-    overflowX: 'auto', // Allows scrolling if the boxes don't fit in the viewport
-  }}
->
-  {[1, 2, 3].map((_, index) => (
-    <Box
-      key={index}
-      sx={{
-        border: '1px dashed grey',
-        width: 400, // Adjust width if needed to fit 3 boxes in a row
-        height: 570,
-        p: 2,
-        boxSizing: 'border-box',
-      }}
-    >
-      This is box {index + 1}
-    </Box>
-  ))}
-</Box>
-
+      <TasksTable/>
     </Box>
   );
 }

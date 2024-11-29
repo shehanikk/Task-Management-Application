@@ -13,8 +13,11 @@
     "@emotion/react": "^11.13.5",
     "@emotion/styled": "^11.13.5",
     "@mui/icons-material": "^6.1.9",
+    "@mui/lab": "^6.0.0-beta.17",
     "@mui/material": "^6.1.9",
+    "@mui/styles": "^6.1.9",
     "@mui/toolpad": "^0.1.51",
+    "@mui/x-date-pickers": "^7.22.3",
     "iconsax-react": "^0.0.8",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"

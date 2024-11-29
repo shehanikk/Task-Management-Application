@@ -3,8 +3,6 @@ import {
   Box,
   Card,
   Popover,
-  List,
-  ListItem,
   Divider,
   Typography,
   Avatar,
@@ -105,8 +103,7 @@ export default function AddTaskCard() {
   const priorityPopoverOpen = Boolean(priorityAnchorEl);
 
   // Function to get styles based on the selected priority
- // Function to get styles based on the selected priority
- const getPriorityStyles = (priority: string | null) => {
+  const getPriorityStyles = (priority: string | null) => {
     switch (priority) {
       case 'Low':
         return {
@@ -134,8 +131,6 @@ export default function AddTaskCard() {
         };
     }
   };
-  
-  
 
   const { textColor, backgroundColor } = getPriorityStyles(selectedPriority);
 
@@ -238,22 +233,21 @@ export default function AddTaskCard() {
 
       {/* Priority Button */}
       <Box sx={{ position: 'absolute', bottom: 10, right: 10 }}>
-      <Chip
-  label={selectedPriority ? selectedPriority : 'Set Priority'}
-  sx={{
-    border: selectedPriority ? 'none' : '1px dashed gray', // Remove border when a priority is selected
-    backgroundColor: backgroundColor,
-    color: textColor,
-    fontWeight: 'bold',
-    borderRadius: '16px',
-    cursor: 'pointer',
-    '&:hover': {
-      backgroundColor: '#EFEFEF', // Hover color
-    },
-  }}
-  onClick={openPriorityPopover}
-/>
-
+        <Chip
+          label={selectedPriority ? selectedPriority : 'Set Priority'}
+          sx={{
+            border: selectedPriority ? 'none' : '1px dashed gray', // Remove border when a priority is selected
+            backgroundColor: backgroundColor,
+            color: textColor,
+            fontWeight: 'bold',
+            borderRadius: '16px',
+            cursor: 'pointer',
+            '&:hover': {
+              backgroundColor: '#EFEFEF', // Hover color
+            },
+          }}
+          onClick={openPriorityPopover}
+        />
       </Box>
 
       {/* Priority Popover */}
@@ -266,22 +260,26 @@ export default function AddTaskCard() {
           horizontal: 'left',
         }}
       >
-        <List sx={{ width: '150px' }}>
-          {priorityOptions.map((option) => (
-            <ListItem
-              button
+        <Box sx={{ width: '150px' }}>
+          {priorityOptions.map((option: string) => (
+            <Box
               key={option}
               onClick={() => handlePrioritySelect(option)}
               sx={{
                 display: 'flex',
                 justifyContent: 'space-between',
                 p: 1,
+                cursor: 'pointer',
+                '&:hover': {
+                  backgroundColor: '#f0f0f0',
+                },
               }}
             >
               <Typography>{option}</Typography>
-            </ListItem>
+              {selectedPriority === option && <TickCircle size="14" color="#1c1c1c" />}
+            </Box>
           ))}
-        </List>
+        </Box>
       </Popover>
 
       {/* User Popover */}
@@ -294,20 +292,27 @@ export default function AddTaskCard() {
           horizontal: 'left',
         }}
       >
-        <List sx={{ width: '240px' }}>
+        <Box sx={{ width: '240px' }}>
           {users.map((user) => (
-            <ListItem
-              button
-              disablePadding
+            <Box
               key={user.name}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1,
+                p: 1,
+                cursor: 'pointer',
+                '&:hover': {
+                  backgroundColor: '#f0f0f0',
+                },
+              }}
               onClick={() => handleUserSelect(user)}
-              sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 1 }}
             >
               <Avatar src={user.avatar} sx={{ width: 35, height: 35 }} />
               <Typography>{user.name}</Typography>
-            </ListItem>
+            </Box>
           ))}
-        </List>
+        </Box>
       </Popover>
 
       {/* Calendar Popover */}
@@ -320,11 +325,22 @@ export default function AddTaskCard() {
           horizontal: 'left',
         }}
       >
-        <Box sx={{ p: 2 }}>
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <DateCalendar onChange={handleDateSelect} />
-          </LocalizationProvider>
-        </Box>
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <DateCalendar
+            value={selectedDate}
+            onChange={handleDateSelect}
+            sx={{
+              minWidth: '300px',
+              '& .MuiPickersDay-root.Mui-selected': {
+                backgroundColor: '#0247B3',
+                color: 'white',
+              },
+              '& .MuiPickersDay-root:hover': {
+                backgroundColor: '#E3F2FD',
+              },
+            }}
+          />
+        </LocalizationProvider>
       </Popover>
     </Card>
   );

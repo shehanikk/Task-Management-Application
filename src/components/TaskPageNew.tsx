@@ -16,11 +16,10 @@ import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-
-// Importing Iconsax icons
 import { Home2, TaskSquare, Diagram, NotificationBing, Setting2 } from 'iconsax-react';
-import InsightsIcon from '@mui/icons-material/Insights'; // Material-UI Insights icon
+import InsightsIcon from '@mui/icons-material/Insights'; 
 import TaskTable from './TaskTable';
+import logo from '../assets/userImages/codelogo.png'
 
 const drawerWidth = 240;
 
@@ -99,7 +98,8 @@ const Drawer = styled(MuiDrawer, {
 export default function TaskPageNew() {
   const theme = useTheme();
   const [open, setOpen] = React.useState(false);
-  const [selectedIndex, setSelectedIndex] = React.useState<number | null>(null);
+ 
+  const [selectedIndex, setSelectedIndex] = React.useState<number>(1);
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -132,8 +132,12 @@ export default function TaskPageNew() {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div">
-            Task Management Application
+          <img
+        src={logo}
+        alt="Logo"
+        style={{ height: '40px', marginRight: '8px' }} />
+          <Typography variant="h6" noWrap component="div" sx={{fontWeight:'bold'}}>
+            Code94 Labs
           </Typography>
         </Toolbar>
       </AppBar>
@@ -203,7 +207,7 @@ export default function TaskPageNew() {
           ))}
         </List>
       </Drawer>
-      <TaskTable/>
+      <TaskTable />
     </Box>
   );
 }

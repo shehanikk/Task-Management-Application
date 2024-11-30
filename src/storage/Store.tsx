@@ -1,20 +1,11 @@
 import { configureStore } from '@reduxjs/toolkit';
-import { persistStore, persistReducer } from 'redux-persist';
-import storage from 'redux-persist/lib/storage';
-import taskReducer from './TaskSlice';
-
-const persistConfig = {
-  key: 'root',
-  storage,
-};
-
-const persistedReducer = persistReducer(persistConfig, taskReducer);
+import tasksReducer from './TaskSlice'; 
 
 const store = configureStore({
   reducer: {
-    tasks: persistedReducer,
+    tasks: tasksReducer,
   },
 });
 
-export const persistor = persistStore(store);
+export type RootState = ReturnType<typeof store.getState>;
 export default store;

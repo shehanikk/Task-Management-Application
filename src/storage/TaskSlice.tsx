@@ -1,40 +1,33 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
+
 interface Task {
   id: string;
-  name: string;
-  assignee: { name: string; avatar: string } | null;
-  dueDate: string | null;
+  taskName: string;
+  user: { name: string; avatar: string } | null;
+  date: string | null;
   priority: string | null;
+  dateMessage: string;
 }
 
-interface TaskState {
+interface TasksState {
   tasks: Task[];
 }
 
-const initialState: TaskState = {
+const initialState: TasksState = {
   tasks: [],
 };
 
-const taskSlice = createSlice({
+const tasksSlice = createSlice({
   name: 'tasks',
   initialState,
   reducers: {
-    addTask: (state, action: PayloadAction<Task>) => {
+    addTask(state, action: PayloadAction<Task>) {
       state.tasks.push(action.payload);
     },
-    updateTask: (state, action: PayloadAction<{ id: string; updatedTask: Partial<Task> }>) => {
-      const { id, updatedTask } = action.payload;
-      const task = state.tasks.find(task => task.id === id);
-      if (task) {
-        Object.assign(task, updatedTask);
-      }
-    },
-    deleteTask: (state, action: PayloadAction<string>) => {
-      state.tasks = state.tasks.filter(task => task.id !== action.payload);
-    },
+    
   },
 });
 
-export const { addTask, updateTask, deleteTask } = taskSlice.actions;
-export default taskSlice.reducer;
+export const { addTask } = tasksSlice.actions;
+export default tasksSlice.reducer;

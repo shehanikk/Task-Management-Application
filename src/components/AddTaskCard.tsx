@@ -258,7 +258,7 @@ export default function AddTaskCard() {
   };
 
   const handleDeleteConfirm = () => {
-    setIsVisible(false);
+    setIsVisible(true);
     setOpenDeleteDialog(false);
     console.log('Task deleted.');
   };

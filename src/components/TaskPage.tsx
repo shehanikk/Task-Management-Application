@@ -17,9 +17,8 @@ import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 
-// Importing Iconsax icons
 import { Home2, TaskSquare, Diagram, NotificationBing, Setting2 } from 'iconsax-react';
-import InsightsIcon from '@mui/icons-material/Insights'; // Material-UI Insights icon
+import InsightsIcon from '@mui/icons-material/Insights'; 
 import TasksTable from './TaskTable';
 
 const drawerWidth = 240;

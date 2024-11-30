@@ -7,7 +7,7 @@ import {
   Typography,
   Avatar,
   Chip,
-  IconButton
+  IconButton,
 } from '@mui/material';
 import { TickCircle, User, Calendar, Clock } from 'iconsax-react';
 import pp2 from '../assets/userImages/pp2.jpg';
@@ -26,6 +26,11 @@ import { v4 as uuidv4 } from 'uuid';
 import InfoIcon from '@mui/icons-material/Info';
 import React from 'react';
 import RightDrawer from './RightDrawer';
+import { useDispatch } from 'react-redux';
+import { addTask } from '../storage/TaskSlice';
+import { useSelector } from 'react-redux'; 
+import DeleteIcon from '@mui/icons-material/Delete'; 
+import DeleteConfirmationDialog from './DialogBox';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -35,8 +40,19 @@ type Anchor = 'right';
 
 export default function AddTaskCard() {
 
+    const dispatch = useDispatch();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const tasks = useSelector((state: any) => state.tasks);
+    useEffect(() => {
+        console.log('Current tasks in Redux store:', tasks);
+      }, [tasks]); 
+
+      
   const [taskName, setTaskName] = useState('');
+  const [description, setDescription] = useState('');
   const [isEditing, setIsEditing] = useState(false);
+  const [isEditingDe, setIsEditingDe] = useState(false);
+  const [isVisible, setIsVisible] = useState(true); 
 
   const [userAnchorEl, setUserAnchorEl] = useState<HTMLElement | null>(null);
   const [calendarAnchorEl, setCalendarAnchorEl] = useState<HTMLElement | null>(null);
@@ -47,21 +63,23 @@ export default function AddTaskCard() {
   const [selectedPriority, setSelectedPriority] = useState<string | null>(null);
   const [dateMessage, setDateMessage] = useState<string>('');
 
-//   const [state, setState] = React.useState({
-//     right: false,
-//   });
-
+  
 
   const [selectedTaskDetails, setSelectedTaskDetails] = useState<{
     taskName: string;
     user: { name: string; avatar: string } | null;
     date: string | null;
     priority: string | null;
+    description: string;
   } | null>(null);
+
+
 
   const [state, setState] = useState({
     right: false,
   });
+  
+  const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
 
   const toggleDrawer = (anchor: Anchor, open: boolean) =>
     (event: React.KeyboardEvent | React.MouseEvent) => {
@@ -76,16 +94,41 @@ export default function AddTaskCard() {
       setState({ ...state, [anchor]: open });
     };
 
+    
     const handleIconClick = () => {
-        // Set task details for the drawer before opening
         setSelectedTaskDetails({
           taskName,
           user: selectedUser,
           date: selectedDate ? selectedDate.format('MMM DD, YYYY') : null,
           priority: selectedPriority,
+          description
         });
-        toggleDrawer('right', true)({} as React.MouseEvent); // Trigger the drawer opening
+        toggleDrawer('right', true)({} as React.MouseEvent); 
       };
+
+
+      const saveToRedux = () => {
+        if (taskName && selectedUser && selectedDate && selectedPriority && dateMessage) {
+          const taskData = {
+            id: `task-${uuidv4()}`,
+            taskName,
+            user: selectedUser,
+            date: selectedDate.toISOString(),
+            priority: selectedPriority,
+            dateMessage,
+            description,
+          };
+          dispatch(addTask(taskData));
+          console.log('Task saved:', taskData);
+        }
+      };
+    
+      useEffect(() => {
+        if (taskName && selectedUser && selectedDate && selectedPriority && dateMessage && description) {
+          saveToRedux();
+        }
+      }, [taskName, selectedUser, selectedDate, selectedPriority, dateMessage, description]);
+
 
   const users = [
     { name: 'John Taylor', avatar: pp2 },
@@ -128,7 +171,7 @@ export default function AddTaskCard() {
         dateMessage,
       };
       localStorage.setItem(taskData.id, JSON.stringify(taskData));
-      console.log('Task saved:', taskData);
+      console.log('Ted:', taskData);
     }
   };
 
@@ -150,8 +193,24 @@ export default function AddTaskCard() {
     }
   };
 
+  const handleDescriptionFocus = () => {
+    if (description === '') {
+        setIsEditingDe(true);
+    }
+  };
+
+  const handleDescriptionBlur = () => {
+    if (description === '') {
+        setIsEditingDe(false);
+    }
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLDivElement>) => {
     setTaskName(e.currentTarget.textContent || '');
+  };
+
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLDivElement>) => {
+    setDescription(e.currentTarget.textContent || '');
   };
 
   const openUserPopover = (event: React.MouseEvent<HTMLElement>) => {
@@ -178,10 +237,11 @@ export default function AddTaskCard() {
     setPriorityAnchorEl(null);
   };
 
-  const handleUserSelect = (user: { name: string; avatar: string }) => {
+  const handleUserSelect = (user: { name: string; avatar: string } | null) => {
     setSelectedUser(user);
     closeUserPopover();
   };
+  
 
   const handleDateSelect = (date: Dayjs | null) => {
     setSelectedDate(date);
@@ -193,6 +253,23 @@ export default function AddTaskCard() {
     closePriorityPopover();
   };
 
+  const handleDeleteClick = () => {
+    setOpenDeleteDialog(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    setIsVisible(false);
+    setOpenDeleteDialog(false);
+    console.log('Task deleted.');
+  };
+
+  const handleDeleteCancel = () => {
+    setOpenDeleteDialog(false);
+  };
+
+  if (!isVisible) {
+    return null; 
+  }
   const userPopoverOpen = Boolean(userAnchorEl);
   const calendarPopoverOpen = Boolean(calendarAnchorEl);
   const priorityPopoverOpen = Boolean(priorityAnchorEl);
@@ -228,10 +305,21 @@ export default function AddTaskCard() {
 
   const { textColor, backgroundColor } = getPriorityStyles(selectedPriority);
 
+
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  useEffect(() => {
+    if (selectedTaskDetails) {
+      console.log('Selected task details:', selectedTaskDetails);
+    }
+  }, [selectedTaskDetails]);
+
+ 
+
   return (
     <Card sx={{ position: 'relative', alignItems: 'center' }}>
        
        <Box sx={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
+       
         <IconButton
           onClick={handleIconClick}
           sx={{
@@ -244,13 +332,35 @@ export default function AddTaskCard() {
         >
           <InfoIcon sx={{ fontSize: 'inherit' }} />
         </IconButton>
+        <IconButton
+         onClick={handleDeleteClick}
+          sx={{
+            color: 'lightgray',
+            fontSize: 20,
+            '&:hover': {
+              backgroundColor: 'transparent',
+            },
+            
+          }}
+        >
+          <DeleteIcon sx={{ fontSize: 20 }} />
+        </IconButton>
       </Box>
       <RightDrawer 
   state={state} 
   toggleDrawer={toggleDrawer} 
   taskDetails={selectedTaskDetails} 
-  onPriorityChange={handlePrioritySelect} // Pass the function here
+  onPriorityChange={handlePrioritySelect}
+  onUserChange={handleUserSelect}
+  onDescription = {handleDescriptionChange}
 />
+
+<DeleteConfirmationDialog
+        open={openDeleteDialog}
+        handleDeleteCancel={handleDeleteCancel}
+        handleDeleteConfirm={handleDeleteConfirm}
+      />
+             
 
       <Box sx={{ p: 0.5, position: 'relative' }}>
         <Box
@@ -287,7 +397,24 @@ export default function AddTaskCard() {
         </div>
       </Box>
       <Divider />
-  
+      <Box sx={{ p: 1, textAlign: 'left', color: 'gray', fontSize: 14 }}>
+        <div
+          style={{
+            minHeight: '24px',
+            outline: 'none',
+            border: 'none',
+            color: description || isEditingDe ? 'black' : 'gray',
+          }}
+          contentEditable
+          suppressContentEditableWarning={true}
+          onFocus={handleDescriptionFocus}
+          onBlur={handleDescriptionBlur}
+          onInput={handleDescriptionChange}
+        >
+          {description === '' && !isEditingDe ? 'Write a description':''}
+        </div>
+      </Box>
+<Divider/>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 1 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Box
@@ -466,5 +593,8 @@ export default function AddTaskCard() {
         </LocalizationProvider>
       </Popover>
     </Card>
+
+    
   );
 }
+

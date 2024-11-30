@@ -10,6 +10,7 @@ const TasksTable = () => {
     'In Progress': [] as string[],
     Completed: [] as string[],
   });
+  
 
   const labels = [
     { text: 'Todo', color: '#FFC107' },

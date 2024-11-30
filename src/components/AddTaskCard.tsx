@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
   Card,
@@ -7,8 +7,9 @@ import {
   Typography,
   Avatar,
   Chip,
+  IconButton
 } from '@mui/material';
-import { TickCircle, User, Calendar } from 'iconsax-react'; // Replace with appropriate icon imports
+import { TickCircle, User, Calendar, Clock } from 'iconsax-react';
 import pp2 from '../assets/userImages/pp2.jpg';
 import pp3 from '../assets/userImages/pp3.jpg';
 import pp4 from '../assets/userImages/pp4.jpg';
@@ -18,8 +19,22 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
 import { Dayjs } from 'dayjs';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+import { v4 as uuidv4 } from 'uuid';
+import InfoIcon from '@mui/icons-material/Info';
+import React from 'react';
+import RightDrawer from './RightDrawer';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+type Anchor = 'right';
+
 
 export default function AddTaskCard() {
+
   const [taskName, setTaskName] = useState('');
   const [isEditing, setIsEditing] = useState(false);
 
@@ -30,8 +45,48 @@ export default function AddTaskCard() {
   const [selectedUser, setSelectedUser] = useState<{ name: string; avatar: string } | null>(null);
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
   const [selectedPriority, setSelectedPriority] = useState<string | null>(null);
+  const [dateMessage, setDateMessage] = useState<string>('');
 
-  // Example user list with profile pictures
+//   const [state, setState] = React.useState({
+//     right: false,
+//   });
+
+
+  const [selectedTaskDetails, setSelectedTaskDetails] = useState<{
+    taskName: string;
+    user: { name: string; avatar: string } | null;
+    date: string | null;
+    priority: string | null;
+  } | null>(null);
+
+  const [state, setState] = useState({
+    right: false,
+  });
+
+  const toggleDrawer = (anchor: Anchor, open: boolean) =>
+    (event: React.KeyboardEvent | React.MouseEvent) => {
+      if (
+        event.type === 'keydown' &&
+        ((event as React.KeyboardEvent).key === 'Tab' ||
+          (event as React.KeyboardEvent).key === 'Shift')
+      ) {
+        return;
+      }
+
+      setState({ ...state, [anchor]: open });
+    };
+
+    const handleIconClick = () => {
+        // Set task details for the drawer before opening
+        setSelectedTaskDetails({
+          taskName,
+          user: selectedUser,
+          date: selectedDate ? selectedDate.format('MMM DD, YYYY') : null,
+          priority: selectedPriority,
+        });
+        toggleDrawer('right', true)(new MouseEvent('click')); // Trigger the drawer opening
+      };
+
   const users = [
     { name: 'John Taylor', avatar: pp2 },
     { name: 'Taylor James', avatar: pp3 },
@@ -40,8 +95,48 @@ export default function AddTaskCard() {
     { name: 'Harry John', avatar: pp7 },
   ];
 
-  // Priority options
   const priorityOptions = ['Low', 'Medium', 'High'];
+
+  useEffect(() => {
+    if (selectedDate) {
+      const currentDate = dayjs().tz('Asia/Colombo'); 
+      const daysDifference = selectedDate.diff(currentDate, 'day');
+
+      if (daysDifference === 0) {
+        setDateMessage('Should be completed by today.');
+      } else if (daysDifference > 0) {
+        setDateMessage(`Should be completed within ${daysDifference} days.`);
+      } else {
+        setDateMessage('Past due date.');
+      }
+    }
+  }, [selectedDate]);
+
+  const generateUniqueId = () => {
+    return `task-${uuidv4()}`;
+  };
+
+  
+  const saveToLocalStorage = () => {
+    if (taskName && selectedUser && selectedDate && selectedPriority && dateMessage ) {
+      const taskData = {
+        id: generateUniqueId(),
+        taskName,
+        user: selectedUser,
+        date: selectedDate.toISOString(),
+        priority: selectedPriority,
+        dateMessage,
+      };
+      localStorage.setItem(taskData.id, JSON.stringify(taskData));
+      console.log('Task saved:', taskData);
+    }
+  };
+
+  useEffect(() => {
+    if (taskName && selectedUser && selectedDate && selectedPriority && dateMessage) {
+      saveToLocalStorage();
+    }
+  }, [taskName, selectedUser, selectedDate, selectedPriority, dateMessage]);
 
   const handleFocus = () => {
     if (taskName === '') {
@@ -90,7 +185,7 @@ export default function AddTaskCard() {
 
   const handleDateSelect = (date: Dayjs | null) => {
     setSelectedDate(date);
-    closeCalendarPopover(); // Close the calendar popover after selection
+    closeCalendarPopover();
   };
 
   const handlePrioritySelect = (priority: string) => {
@@ -102,32 +197,31 @@ export default function AddTaskCard() {
   const calendarPopoverOpen = Boolean(calendarAnchorEl);
   const priorityPopoverOpen = Boolean(priorityAnchorEl);
 
-  // Function to get styles based on the selected priority
   const getPriorityStyles = (priority: string | null) => {
     switch (priority) {
       case 'Low':
         return {
           textColor: '#0247B3',
           backgroundColor: '#C2D7F7',
-          border: 'none', // Remove dashed border for selected priority
+          border: 'none',
         };
       case 'Medium':
         return {
           textColor: '#FFAD0D',
           backgroundColor: '#FFFAF2',
-          border: 'none', // Remove dashed border for selected priority
+          border: 'none',
         };
       case 'High':
         return {
           textColor: '#CB2E27',
           backgroundColor: '#FCF4F4',
-          border: 'none', // Remove dashed border for selected priority
+          border: 'none',
         };
       default:
         return {
           textColor: 'gray',
           backgroundColor: 'white',
-          border: '1px dashed gray', // Show dashed border when no priority is set
+          border: '1px dashed gray',
         };
     }
   };
@@ -135,8 +229,24 @@ export default function AddTaskCard() {
   const { textColor, backgroundColor } = getPriorityStyles(selectedPriority);
 
   return (
-    <Card sx={{ width: '365px', position: 'relative' }}>
-      <Box sx={{ p: 2, position: 'relative' }}>
+    <Card sx={{ position: 'relative', alignItems: 'center' }}>
+       
+       <Box sx={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
+        <IconButton
+          onClick={handleIconClick}
+          sx={{
+            color: 'lightgray',
+            fontSize: 20,
+            '&:hover': {
+              backgroundColor: 'transparent',
+            },
+          }}
+        >
+          <InfoIcon sx={{ fontSize: 'inherit' }} />
+        </IconButton>
+      </Box>
+      <RightDrawer state={state} toggleDrawer={toggleDrawer} taskDetails={selectedTaskDetails} />
+      <Box sx={{ p: 0.5, position: 'relative' }}>
         <Box
           sx={{
             position: 'absolute',
@@ -148,7 +258,7 @@ export default function AddTaskCard() {
         >
           <TickCircle size="20" color="#1c1c1c" />
         </Box>
-
+  
         <div
           style={{
             paddingLeft: '30px',
@@ -171,86 +281,95 @@ export default function AddTaskCard() {
         </div>
       </Box>
       <Divider />
-      <Box sx={{ display: 'flex', alignItems: 'center', p: 1, gap: 2 }}>
-        <Box
-          onClick={openUserPopover}
-          sx={{
-            width: 36,
-            height: 36,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            border: selectedUser ? 'none' : '2px dashed #9d9d9d',
-            borderRadius: '50%',
-            cursor: 'pointer',
-          }}
-        >
-          {selectedUser ? (
-            <Avatar src={selectedUser.avatar} sx={{ width: 32, height: 32 }} />
-          ) : (
-            <User size="23" color="#9d9d9d" />
-          )}
-        </Box>
-
-        {/* Render the date chip if a date is selected; otherwise, show the calendar icon */}
-        {selectedDate ? (
-          <Chip
-            label={selectedDate.format('MMM DD')} // Format date as "Nov 18"
-            sx={{
-              backgroundColor: '#C2D7F7',
-              color: '#0247B3',
-              fontWeight: 'bold', // Make the text bold
-              borderRadius: '16px',
-              height: '30px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer', // Make chip clickable
-              '&:hover': {
-                backgroundColor: '#C2D7F7', // Hover color should match the background color
-              },
-            }}
-            onClick={openCalendarPopover} // Open calendar when the chip is clicked
-          />
-        ) : (
+  
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Box
-            onClick={openCalendarPopover}
+            onClick={openUserPopover}
             sx={{
               width: 36,
               height: 36,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              border: '2px dashed #9d9d9d',
+              border: selectedUser ? 'none' : '2px dashed #9d9d9d',
               borderRadius: '50%',
               cursor: 'pointer',
             }}
           >
-            <Calendar size="23" color="#9d9d9d" />
+            {selectedUser ? (
+              <Avatar src={selectedUser.avatar} sx={{ width: 32, height: 32 }} />
+            ) : (
+              <User size="23" color="#9d9d9d" />
+            )}
           </Box>
-        )}
+  
+          {selectedDate ? (
+            <Chip
+              label={selectedDate.format('MMM DD')}
+              sx={{
+                backgroundColor: '#C2D7F7',
+                color: '#0247B3',
+                fontWeight: 'bold',
+                borderRadius: '16px',
+                height: '30px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                '&:hover': {
+                  backgroundColor: '#C2D7F7',
+                },
+              }}
+              onClick={openCalendarPopover}
+            />
+          ) : (
+            <Box
+              onClick={openCalendarPopover}
+              sx={{
+                width: 36,
+                height: 36,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                border: '2px dashed #9d9d9d',
+                borderRadius: '50%',
+                cursor: 'pointer',
+              }}
+            >
+              <Calendar size="23" color="#9d9d9d" />
+            </Box>
+          )}
+        </Box>
+  
+        <Box>
+          <Chip
+            label={selectedPriority ? selectedPriority : 'Set Priority'}
+            sx={{
+              border: selectedPriority ? 'none' : '1px dashed gray',
+              backgroundColor: backgroundColor,
+              color: textColor,
+              fontWeight: 'bold',
+              borderRadius: '16px',
+              cursor: 'pointer',
+              '&:hover': {
+                backgroundColor: '#EFEFEF',
+              },
+            }}
+            onClick={openPriorityPopover}
+          />
+        </Box>
       </Box>
-
-      {/* Priority Button */}
-      <Box sx={{ position: 'absolute', bottom: 10, right: 10 }}>
-        <Chip
-          label={selectedPriority ? selectedPriority : 'Set Priority'}
-          sx={{
-            border: selectedPriority ? 'none' : '1px dashed gray', // Remove border when a priority is selected
-            backgroundColor: backgroundColor,
-            color: textColor,
-            fontWeight: 'bold',
-            borderRadius: '16px',
-            cursor: 'pointer',
-            '&:hover': {
-              backgroundColor: '#EFEFEF', // Hover color
-            },
-          }}
-          onClick={openPriorityPopover}
-        />
-      </Box>
-
-      {/* Priority Popover */}
+  
+      {selectedDate && (
+        <Box sx={{ p: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Clock size="16" color="#1c1c1c" /> 
+          <Typography variant="body2" color="textSecondary">
+            {dateMessage}
+          </Typography>
+        </Box>
+      )}
+  
       <Popover
         open={priorityPopoverOpen}
         anchorEl={priorityAnchorEl}
@@ -281,8 +400,7 @@ export default function AddTaskCard() {
           ))}
         </Box>
       </Popover>
-
-      {/* User Popover */}
+  
       <Popover
         open={userPopoverOpen}
         anchorEl={userAnchorEl}
@@ -314,8 +432,7 @@ export default function AddTaskCard() {
           ))}
         </Box>
       </Popover>
-
-      {/* Calendar Popover */}
+  
       <Popover
         open={calendarPopoverOpen}
         anchorEl={calendarAnchorEl}

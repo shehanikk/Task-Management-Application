@@ -1,131 +1,190 @@
 import { Box, Typography } from '@mui/material';
 import { Record, Add } from 'iconsax-react';
 import { useState } from 'react';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'; // Import DragDropContext, Droppable, and Draggable
 import AddTaskCard from './AddTaskCard'; // Import the AddTaskCard component
 
 const TasksTable = () => {
-  const [taskInputVisible, setTaskInputVisible] = useState({
-    Todo: false,
-    'In Progress': false,
-    Completed: false,
+  const [tasks, setTasks] = useState({
+    Todo: [] as number[], // Each array holds task IDs for this label
+    'In Progress': [] as number[],
+    Completed: [] as number[],
   });
 
   const labels = [
     { text: 'Todo', color: '#FFC107' }, // Custom color for 'Todo'
     { text: 'In Progress', color: '#0247B3' }, // Custom color for 'In Progress'
     { text: 'Completed', color: '#4CAF50' }, // Custom color for 'Completed'
-  ]; // Labels with corresponding colors
+  ];
 
-  const handleAddTaskClick = (labelText: string) => {
-    setTaskInputVisible((prevState) => ({
-      ...prevState,
-      [labelText]: true,
+  const handleAddTaskClick = (labelText: keyof typeof tasks) => {
+    setTasks((prevTasks) => ({
+      ...prevTasks,
+      [labelText]: [...prevTasks[labelText], prevTasks[labelText].length + 1], // Add a new task with a unique ID
     }));
   };
 
-  return (
-    <Box
-      component="section"
-      sx={{
-        display: 'flex',
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        gap: 5, // Increase the space between the boxes
-        p: 2,
-        width: '1350px', // Ensure the container is full width to fit all boxes
-        overflowX: 'auto', // Allows scrolling if the boxes don't fit in the viewport
-      }}
-    >
-      {labels.map((label, index) => (
-        <Box
-          key={index}
-          sx={{
-            border: '1px dashed rgba(0, 0, 0, 0.2)', // Transparent thin dashed border
-            borderWidth: '2px', // Reduced width for a thinner border
-            borderRadius: '9px', // Optional: Add rounded corners for a cleaner look
-            width: 400, // Adjust width if needed to fit 3 boxes in a row
-            height: 570,
-            p: 2,
-            boxSizing: 'border-box',
-            position: 'relative', // Required for positioning the label and the icon
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'flex-start', // Align contents to the left
-          }}
-        >
-          {/* Label box with icon and text */}
-          <Box
-            sx={{
-              backgroundColor: 'white',
-              color: 'black',
-              borderRadius: '4px',
-              padding: '10px 16px', // Padding for better visibility
-              textAlign: 'left',
-              display: 'flex',
-              alignItems: 'center', // Align icon and text vertically
-              position: 'absolute',
-              top: '10px', // Distance from the top of the dashed box
-              left: '50%', // Center horizontally
-              transform: 'translateX(-50%)', // Adjust horizontal centering
-              width: '95%', // Full width with some space for padding
-              height: '8%',
-            }}
-          >
-            <Record size="20" color={label.color} style={{ marginRight: '8px' }} />
-            <span>{label.text}</span>
-          </Box>
+  const onDragEnd = (result: any) => {
+    const { source, destination } = result;
 
-          {/* Conditional rendering of "Add Task" button or input field */}
-          {taskInputVisible[label.text as keyof typeof taskInputVisible] ? (
-            <Box sx={{ paddingTop: '15%' }}> {/* Add padding to the AddTaskCard */}
-              <AddTaskCard />
-            </Box>
-          ) : (
+    // If dropped outside the list (no destination), do nothing
+    if (!destination) return;
+
+    const sourceLabel = source.droppableId as keyof typeof tasks;
+    const destinationLabel = destination.droppableId as keyof typeof tasks;
+
+    // If the item is dropped in the same position, no need to update the state
+    if (source.droppableId === destination.droppableId && source.index === destination.index) {
+      return;
+    }
+
+    const newTasks = { ...tasks };
+    const [removedTask] = newTasks[sourceLabel].splice(source.index, 1); // Remove the task from the source
+    newTasks[destinationLabel].splice(destination.index, 0, removedTask); // Add it to the destination
+
+    setTasks(newTasks); // Update the state with new task lists
+  };
+
+  return (
+    <DragDropContext onDragEnd={onDragEnd}> {/* Wrap with DragDropContext */}
+      <Box
+        component="section"
+        sx={{
+          display: 'flex',
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          gap: 5,
+          p: 2,
+          width: '1350px',
+          overflowX: 'auto',
+        }}
+      >
+        {labels.map((label, index) => (
+          <Droppable key={index} droppableId={label.text}> 
+          {(provided) => (  // The child here should be a function
             <Box
               sx={{
+                border: '1px dashed rgba(0, 0, 0, 0.2)',
+                borderWidth: '2px',
+                borderRadius: '9px',
+                width: 400,
+                height: 570, // Fixed height for the dashed box
+                p: 2,
+                boxSizing: 'border-box',
+                position: 'relative',
                 display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginTop: 6, // Space below the label box
-                cursor: 'pointer',
-                width: '100%', // Ensure the container takes full width for centering
+                flexDirection: 'column',
+                alignItems: 'flex-start',
               }}
-              onClick={() => handleAddTaskClick(label.text)} // Show input when clicked
+              ref={provided.innerRef} // Attach provided ref
+              {...provided.droppableProps} // Attach droppable props
             >
+              {/* Render label box with icon and text */}
+              <Box
+                sx={{
+                  backgroundColor: 'white',
+                  color: 'black',
+                  borderRadius: '4px',
+                  padding: '10px 16px',
+                  textAlign: 'left',
+                  display: 'flex',
+                  alignItems: 'center',
+                  position: 'absolute',
+                  top: '10px',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  width: '95%',
+                  height: '8%',
+                }}
+              >
+                <Record size="20" color={label.color} style={{ marginRight: '8px' }} />
+                <span>{label.text}</span>
+              </Box>
+        
+              {/* Scrollable container for tasks and "Add Task" button */}
               <Box
                 sx={{
                   display: 'flex',
-                  alignItems: 'center', // Center icon and text vertically
-                  justifyContent: 'center', // Center icon and text horizontally
-                  paddingTop: '10px',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  width: '100%',
+                  height: '100%', // Ensures the scrollable container fills the box
+                  marginTop: '60px', // Space below the label box
+                  overflowY: 'auto', // Enables scrolling if content overflows
+                  paddingBottom: '16px', // Adds space at the bottom for better scrolling UX
+                  scrollbarWidth: 'thin', // Firefox scrollbar size
+                  scrollbarColor: '#B0B0B0 #F0F0F0', // Firefox scrollbar color
+                  '&::-webkit-scrollbar': {
+                    width: '6px', // Thin width
+                  },
+                  '&::-webkit-scrollbar-thumb': {
+                    backgroundColor: '#B0B0B0', // Thumb color
+                    borderRadius: '10px', // Rounded corners
+                  },
+                  '&::-webkit-scrollbar-thumb:hover': {
+                    backgroundColor: '#909090', // Darker on hover
+                  },
+                  '&::-webkit-scrollbar-track': {
+                    backgroundColor: '#F0F0F0', // Track color
+                    borderRadius: '10px', // Rounded corners for the track
+                  },
                 }}
               >
-                <Add size="16" color="#1c1c1c" style={{ marginRight: '8px' }} />
-                <Typography
+                {tasks[label.text as keyof typeof tasks].map((taskId, index) => (
+                  <Draggable key={taskId} draggableId={taskId.toString()} index={index}>
+                    {(provided) => (
+                      <Box
+                        ref={provided.innerRef} // Attach provided ref
+                        {...provided.draggableProps} // Attach draggable props
+                        {...provided.dragHandleProps} // Attach drag handle props
+                        sx={{ width: '100%', marginBottom: 2 }}
+                      >
+                        <AddTaskCard />
+                      </Box>
+                    )}
+                  </Draggable>
+                ))}
+                {/* Add Task button */}
+                <Box
                   sx={{
-                    fontSize: '14px',
-                    color: '#1c1c1c', // Adjust color as needed
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
                   }}
+                  onClick={() => handleAddTaskClick(label.text as keyof typeof tasks)}
                 >
-                  Add Task
-                </Typography>
+                  <Add size="16" color="#1c1c1c" style={{ marginRight: '8px' }} />
+                  <Typography
+                    sx={{
+                      fontSize: '14px',
+                      color: '#1c1c1c',
+                    }}
+                  >
+                    Add Task
+                  </Typography>
+                </Box>
               </Box>
+        
+              {/* Add icon at the top right corner */}
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: '20px',
+                  right: '20px',
+                }}
+              >
+                <Add size="24" color="#1c1c1c" />
+              </Box>
+        
+              {provided.placeholder} {/* Render placeholder space when dragging */}
             </Box>
           )}
-
-          {/* Add icon at the top right corner */}
-          <Box
-            sx={{
-              position: 'absolute',
-              top: '20px', // Adjust as needed for spacing
-              right: '20px', // Position at the top right corner
-            }}
-          >
-            <Add size="24" color="#1c1c1c" />
-          </Box>
-        </Box>
-      ))}
-    </Box>
+        </Droppable>
+        
+        ))}
+      </Box>
+    </DragDropContext>
   );
 };
 

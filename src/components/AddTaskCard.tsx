@@ -84,7 +84,7 @@ export default function AddTaskCard() {
           date: selectedDate ? selectedDate.format('MMM DD, YYYY') : null,
           priority: selectedPriority,
         });
-        toggleDrawer('right', true)(new MouseEvent('click')); // Trigger the drawer opening
+        toggleDrawer('right', true)({} as React.MouseEvent); // Trigger the drawer opening
       };
 
   const users = [
@@ -245,7 +245,13 @@ export default function AddTaskCard() {
           <InfoIcon sx={{ fontSize: 'inherit' }} />
         </IconButton>
       </Box>
-      <RightDrawer state={state} toggleDrawer={toggleDrawer} taskDetails={selectedTaskDetails} />
+      <RightDrawer 
+  state={state} 
+  toggleDrawer={toggleDrawer} 
+  taskDetails={selectedTaskDetails} 
+  onPriorityChange={handlePrioritySelect} // Pass the function here
+/>
+
       <Box sx={{ p: 0.5, position: 'relative' }}>
         <Box
           sx={{

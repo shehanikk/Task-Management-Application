@@ -1,13 +1,13 @@
 // RightDrawer.tsx
-import React, { useState } from 'react';
+import React from 'react';
 import Drawer from '@mui/material/Drawer';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
-import { Button, IconButton, Select, MenuItem } from '@mui/material';
+import { Button, IconButton } from '@mui/material';
 import CheckCircleOutlineRoundedIcon from '@mui/icons-material/CheckCircleOutlineRounded';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { Calendar, Flag } from 'iconsax-react';
+import { Calendar } from 'iconsax-react';
 
 type Anchor = 'right';
 
@@ -25,16 +25,8 @@ interface RightDrawerProps {
   onPriorityChange: (newPriority: string) => void; // Callback to handle priority change
 }
 
-const RightDrawer: React.FC<RightDrawerProps> = ({ state, toggleDrawer, taskDetails, onPriorityChange }) => {
-  const [selectedPriority, setSelectedPriority] = useState<string | null>(taskDetails?.priority || '');
-
-  const handlePriorityChange = (event: React.ChangeEvent<{ value: unknown }>) => {
-    const newPriority = event.target.value as string;
-    setSelectedPriority(newPriority);
-    if (onPriorityChange) {
-      onPriorityChange(newPriority);
-    }
-  };
+const RightDrawer: React.FC<RightDrawerProps> = ({ state, toggleDrawer, taskDetails }) => {
+  
 
   return (
     <Drawer
@@ -106,24 +98,7 @@ const RightDrawer: React.FC<RightDrawerProps> = ({ state, toggleDrawer, taskDeta
               </Typography>
             </Box>
 
-            {/* Priority Dropdown */}
-            <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: 2 }}>
-              <Flag color="gray" />
-              <Typography variant="body1" color="gray" sx={{ paddingLeft: 2 }}>
-                Priority
-              </Typography>
-              <Select
-                value={selectedPriority}
-                onChange={handlePriorityChange}
-                sx={{ marginLeft: 2 }}
-                displayEmpty
-                variant="outlined"
-              >
-                <MenuItem value="High">High</MenuItem>
-                <MenuItem value="Medium">Medium</MenuItem>
-                <MenuItem value="Low">Low</MenuItem>
-              </Select>
-            </Box>
+           
           </>
         ) : (
           <Typography>No task selected</Typography>

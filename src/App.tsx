@@ -1,11 +1,11 @@
 import './App.css';
-import TaskPage from './components/TaskPage';
+import TaskPageNew from './components/TaskPageNew';
 
 function App() {
   return (
     <>
       <div >
-        <TaskPage />
+        <TaskPageNew/>
       </div>
     </>
   );

@@ -12,7 +12,7 @@ const TasksTable = () => {
   });
 
   const labels = [
-    { text: 'Todo', color: '#FFC107' }, // Custom color for 'Todo'
+    { text: 'Todooo', color: '#FFC107' }, // Custom color for 'Todo'
     { text: 'In Progress', color: '#0247B3' }, // Custom color for 'In Progress'
     { text: 'Completed', color: '#4CAF50' }, // Custom color for 'Completed'
   ];
